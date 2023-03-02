@@ -6,49 +6,87 @@ import time
 import json
 
 config = {
-    "geofences": [{
-        #Ejemplo
-        "lat": 43.67313,
-        "long": -116.29205,
-        "radius": 10},
-        #TAPO
+    "geofences": [
+        #TAPO1
         {
         "lat": 19.43017,
         "long": -99.11219,
         "radius": 100},
-        #Chetumal
+        #TAPO2
+        {
+        "lat": 19.433187, 
+        "long": -99.113972,
+        "radius": 100},
+        #TAPO3
+        {
+        "lat": 19.43376, 
+        "long": -99.11226,
+        "radius": 100},
+        #CEQ ADO
         {
         "lat": 18.52181, 
         "long": -88.29188,
         "radius": 100},
+        #CHK ADO
         {
-        "lat": 19.43017,
-        "long": -99.11219,
+        "lat": 18.643135, 
+        "long": -91.812125,
+        "radius": 80},
+        #CQQ ADO
+        {
+        "lat": 21.15008, 
+        "long": -86.86393,
+        "radius": 250},
+        #ENCIERRO TERMINAL CHK ADO
+        {
+        "lat": 19.82266, 
+        "long": -90.53135,
         "radius": 100},
+        # ENCIERRO THP ADO
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100},
+        "lat": 18.46176, 
+        "long": -97.40352,
+        "radius": 170},
+        #TALLER CBV ADO
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100},
+        "lat": 18.88368, 
+        "long": -96.91615,
+        "radius": 270},
+        #Taller COV ADO 1
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100},
+        "lat": 18.11751, 
+        "long": -94.44571,
+        "radius": 300},
+        #Taller COV ADO 2
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100},
+        "lat": 18.11934, 
+        "long": -94.44341,
+        "radius": 150},
+        #Taller MEY ADO
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100},
+        "lat": 20.94525, 
+        "long": -89.65784,
+        "radius": 300},
+        #TALLER OAO ADO
         {
-        "lat": 19.43017,
-        "long": -99.11219,
-        "radius": 100}
+        "lat": 17.03777, 
+        "long": -96.70768,
+        "radius": 200},
+        #TALLER PUP ADO
+        {
+        "lat": 19.07402, 
+        "long": -98.21215,
+        "radius": 300},
+        #TALLER VEV ADO
+        {
+        "lat": 19.16494, 
+        "long": -96.13568,
+        "radius": 300},
+        #TALLER VHT ADO
+        {
+        "lat": 18.00161, 
+        "long": -92.92129,
+        "radius": 150}
         ],
     "debug": True
 }
@@ -104,18 +142,23 @@ def debug_log(msg):
 
 cp.log('Starting...')
 in_geofence = False
+
+def check_geofence(geofence):
+    dist = distance.distance((lat, long), (geofence["lat"], geofence["long"])).m
+    debug_log(f'Lat: {lat} Long: {long} Distance: {dist}')
+    return dist < geofence["radius"]
+
 while True:
     config = get_config('geofence_wifi')
     lat, long, accuracy = get_location()
-    for geofence in config["geofences"]:
-        dist = distance.distance((lat, long), (geofence["lat"], geofence["long"])).m
-        debug_log(f'Lat: {lat} Long: {long} Distance: {dist}')
-        if dist < geofence["radius"] and not in_geofence:
+    if any(check_geofence(g) for g in config['geofences']):
+        if not in_geofence:
             in_geofence = True
             cp.log('Entered geofence. Disabling WiFi.')
             disable_wifi(True)
-        elif dist > geofence["radius"] and in_geofence:
+    else:
+        if in_geofence:
             in_geofence = False
             cp.log('Exited Geofence.  Enabling WiFi.')
-            disable_wifi(False)
+        disable_wifi(False)
     time.sleep(1)

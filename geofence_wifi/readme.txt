@@ -5,7 +5,7 @@ geofence_wifi
 
 Application Version
 ===================
-0.1
+0.3
 
 
 NCOS Devices Supported
